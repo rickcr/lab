@@ -1,0 +1,1 @@
+/home/rick_reumann/.vimrc
