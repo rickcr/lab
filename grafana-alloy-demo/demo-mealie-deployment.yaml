@@ -1,0 +1,65 @@
+#Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+
+#Mealie App
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mealie
+  name: mealie
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mealie
+  template:
+    metadata:
+      labels:
+        app: mealie
+    spec:
+      #can have multiple images
+      containers:
+      - image: ghcr.io/mealie-recipes/mealie:v3.3.0
+        name: mealie-image
+        ports: 
+          - containerPort: 9000
+---
+
+#In a real cloud environment (like AWS, GCP, Azure), Kubernetes will provision an external load balancer (e.g. ELB, Azure LB) and assign a public IP address so you can access your app externally.
+#
+#In Kind (Kubernetes-in-Docker), LoadBalancer doesn’t automatically provision a real external IP — because Kind isn’t running in a cloud environment.
+#Instead:
+#
+#The Service will remain in a “pending” external IP state if you check with kubectl get svc.
+#
+#You can still reach it using port forwarding or NodePort type service.
+#
+#LoadBalancer won’t actually expose it to your host machine by default.
+#
+#Manually forward the Service port to your local machine:
+#
+#kubectl port-forward svc/mealie 9000:9000 -n demo
+
+#Mealie service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mealie
+  name: mealie
+  namespace: demo
+spec:
+  ports:
+  - port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: mealie
+  type: LoadBalancer
+

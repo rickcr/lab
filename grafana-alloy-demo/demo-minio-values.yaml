@@ -1,0 +1,148 @@
+---
+# Official MinIO Helm Chart Configuration
+# Deploy with: helm install minio minio-official/minio -f demo-minio-values.yaml -n demo
+# Add repo: helm repo add minio-official https://charts.min.io/
+
+# Deployment mode
+mode: standalone  # Options: standalone, distributed
+
+# MinIO root credentials
+rootUser: minio
+rootPassword: supersecret  # Change this in production!
+
+# Number of MinIO replicas (for standalone mode, keep at 1)
+replicas: 1
+
+# Persistence configuration
+persistence:
+  enabled: true
+  storageClass: ""  # Use default storage class
+  accessMode: ReadWriteOnce
+  size: 20Gi  # Adjust based on your needs
+
+mcImage:
+  repository: minio/mc
+  tag: RELEASE.2024-11-21T17-21-54Z
+  pullPolicy: IfNotPresent
+  
+# Automatically create buckets for Loki and Mimir
+buckets:
+  - name: mimir-tsdb
+    policy: none
+    purge: false
+    versioning: false
+  - name: loki-chunks
+    policy: none
+    purge: false
+    versioning: false
+  - name: loki-ruler
+    policy: none
+    purge: false
+    versioning: false
+  - name: loki-admin
+    policy: none
+    purge: false
+    versioning: false
+
+# Main MinIO service
+service:
+  type: ClusterIP
+  port: 9000
+  # Service will be accessible at: minio.demo.svc.cluster.local:9000
+
+# Disable the console (web UI)
+consoleService:
+  type: ClusterIP
+  port: 9001
+
+consoleIngress:
+  enabled: false
+
+# Resource limits
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+
+# Security context
+securityContext:
+  enabled: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+# Environment variables
+environment:
+  MINIO_BROWSER: "off"  # Disable web console
+  MINIO_PROMETHEUS_AUTH_TYPE: "public"  # Allow metrics scraping
+
+# Liveness probe
+livenessProbe:
+  httpGet:
+    path: /minio/health/live
+    port: 9000
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+# Readiness probe
+readinessProbe:
+  httpGet:
+    path: /minio/health/ready
+    port: 9000
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+# Startup probe
+startupProbe:
+  httpGet:
+    path: /minio/health/live
+    port: 9000
+    scheme: HTTP
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 30
+
+# Metrics for Prometheus (optional)
+metrics:
+  serviceMonitor:
+    enabled: false
+    # Enable if you have Prometheus Operator
+    # enabled: true
+    # namespace: demo
+    # interval: 30s
+
+# Node selector (optional)
+nodeSelector: {}
+
+# Tolerations (optional)
+tolerations: []
+
+# Affinity (optional)
+affinity: {}
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Network policy (optional)
+networkPolicy:
+  enabled: false
+
+# Ingress (if you want external access - not needed for internal use)
+ingress:
+  enabled: false

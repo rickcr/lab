@@ -1,0 +1,90 @@
+# mimir-values.yaml - FIXED AND REVISED WITH PROPER YAML NESTING AND PREFIXES
+# -----------------------------------------------------------------------------
+# Mimir using MinIO for storage
+# -----------------------------------------------------------------------------
+target: all,alertmanager,overrides-exporter
+
+# Configure storage backend
+mimir:
+  structuredConfig:
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: minio.demo.svc.cluster.local:9000
+          region: us-east-1
+          bucket_name: mimir-tsdb
+          access_key_id: minio
+          secret_access_key: supersecret
+          insecure: true
+    server:
+      http_listen_port: 8080
+      grpc_listen_port: 9095
+      log_level: info
+
+    # Blocks storage (for metrics data)
+    blocks_storage:
+      backend: s3
+      storage_prefix: blocks
+      s3:
+        endpoint: minio.demo.svc.cluster.local:9000
+        region: us-east-1
+        bucket_name: mimir-tsdb
+        access_key_id: minio
+        secret_access_key: supersecret
+        insecure: true
+      tsdb:
+        dir: /data/tsdb
+      bucket_store:
+        sync_dir: /data/tsdb-sync
+    
+    # Alertmanager storage
+    alertmanager_storage:
+      backend: s3
+      storage_prefix: alertmanager
+      s3:
+        endpoint: minio.demo.svc.cluster.local:9000
+        region: us-east-1
+        bucket_name: mimir-tsdb
+        access_key_id: minio
+        secret_access_key: supersecret
+        insecure: true
+    
+    # Ruler storage (for recording/alerting rules)
+    ruler_storage:
+      backend: s3
+      storage_prefix: ruler
+      s3:
+        endpoint: minio.demo.svc.cluster.local:9000
+        region: us-east-1
+        bucket_name: mimir-tsdb
+        access_key_id: minio
+        secret_access_key: supersecret
+        insecure: true
+
+# Disable MinIO deployment in the chart
+minio:
+  enabled: false
+
+# Optional: disable alertmanager if you don't need alerts
+alertmanager:
+  enabled: false
+
+# Optional: disable Grafana Agent
+metaMonitoring:
+  grafanaAgent:
+    enabled: false
+
+# Optional: reduce replicas for small dev cluster
+distributor:
+  replicas: 1
+ingester:
+  replicas: 1
+querier:
+  replicas: 1
+store_gateway:
+  replicas: 1
+query_frontend:
+  replicas: 1
+
+

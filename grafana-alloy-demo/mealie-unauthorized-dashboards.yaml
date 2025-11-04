@@ -1,0 +1,232 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "${LokiDataSource}"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Grafana Annotations",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "uid": "${LokiDataSource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "${LokiDataSource}"
+          },
+          "editorMode": "builder",
+          "expr": "rate({namespace=\"${NamespaceLabel}\", app=\"mealie\"} |~ \"(?i)unauthorized\"[1m]) * 60",
+          "legendFormat": "Attempts/min",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Unauthorized Attempts per Minute",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "${LokiDataSource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "${LokiDataSource}"
+          },
+          "editorMode": "builder",
+          "expr": "sum(count_over_time({namespace=\"${NamespaceLabel}\", app=\"mealie\"} |~ \"(?i)unauthorized\"[$__range]))",
+          "legendFormat": "Total Unauthorized Events",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Unauthorized Attempts",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "${LokiDataSource}"
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "uid": "${LokiDataSource}"
+          },
+          "expr": "{namespace=\"${NamespaceLabel}\", app=\"mealie\"} |~ \"(?i)unauthorized\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Raw Unauthorized Log Lines",
+      "type": "logs"
+    }
+  ],
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [
+    "loki",
+    "mealie",
+    "security"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "Loki",
+          "value": "Loki"
+        },
+        "description": "Loki data source",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Loki Data Source",
+        "multi": false,
+        "name": "LokiDataSource",
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "mealie-logs",
+          "value": "mealie-logs"
+        },
+        "description": "A literal string to filter logs by (e.g., 'mealie-logs')",
+        "hide": 0,
+        "label": "Mealie Log Content Filter",
+        "name": "JobLabel",
+        "options": [],
+        "query": "mealie-logs",
+        "refresh": 0,
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": "demo",
+          "value": "demo"
+        },
+        "description": "The namespace label for Mealie (e.g., demo)",
+        "hide": 0,
+        "label": "Mealie Namespace",
+        "name": "NamespaceLabel",
+        "options": [],
+        "query": "label_values({__name__=\"log\"}, namespace)",
+        "refresh": 1,
+        "regex": "/demo.*/",
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Mealie Unauthorized Access Monitor",
+  "uid": "mealie-auth-monitor",
+  "version": 1
+}
+

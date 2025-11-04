@@ -1,0 +1,110 @@
+---
+cluster:
+  name: demo-monitoring-tutorial
+
+destinations:
+  - name: loki
+    type: loki
+    url: http://loki-gateway.demo.svc.cluster.local/loki/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: demo
+  - name: mimir
+    type: prometheus
+    url: http://mimir-distributor.demo.svc.cluster.local:8080/api/v1/push
+    extraHeaders:
+      X-Scope-OrgID: demo
+
+clusterEvents:
+  enabled: true
+  collector: alloy-logs
+  namespaces:
+    - demo
+
+nodeLogs:
+  enabled: false
+
+podLogs:
+  enabled: true
+  gatherMethod: kubernetesApi
+  collector: alloy-logs
+  labelsToKeep: 
+    - app
+    - pod
+    - app_kubernetes_io_name
+    - container
+    - instance
+    - job
+    - level
+    - namespace
+    - service_name
+    - service_namespace
+    - deployment_environment
+    - deployment_environment_name
+  relabelConfigs:
+    #I have the feeling this isn't ONLY restricting to the mealie pod being sent to loki.. other ones also stream, but this was still neeeded
+    #to make sure mealie ones were scraped
+    # only scrape logs from a pod that starts with mealie
+    - action: keep
+      source_labels: [__meta_kubernetes_pod_name]
+      regex: ^mealie.*
+    # Adds job=mealie-logs to every kept log line
+    - action: replace
+      target_label: job
+      replacement: mealie-logs
+  structuredMetadata:
+    pod: pod
+  namespaces:
+    - demo
+
+
+clusterMetrics:
+  enabled: true
+  collector: alloy-metrics
+
+podMetrics:
+  enabled: true
+  collector: alloy-metrics
+
+# Collectors
+alloy-singleton:
+  enabled: false  #  disabled since we're not using it
+
+alloy-metrics:
+  enabled: true
+  alloy:
+    clustering:
+      enabled: true
+    alloy-metrics:
+  enabled: true
+  alloy:
+    clustering:
+      enabled: true
+
+alloy-logs:
+  enabled: true
+  alloy:
+    mounts:
+      varlog: false
+      dockercontainers: false
+    clustering:
+      enabled: true
+
+integrations:
+  collector: alloy-metrics
+  destinations:
+    - mimir
+  mimir:
+    instances:
+      - name: mimir
+        labelSelectors:
+          app.kubernetes.io/name: mimir
+        namespaces:
+          - demo
+        metricsTuning:
+          useDefaultAllowList: false
+
+alloy-profiles:
+  enabled: false
+
+alloy-receiver:
+  enabled: false
