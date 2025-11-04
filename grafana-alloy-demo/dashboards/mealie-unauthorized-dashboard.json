@@ -24,12 +24,68 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 1,
+  "id": 22,
   "links": [],
   "panels": [
     {
       "datasource": {
         "uid": "${LokiDataSource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -49,10 +105,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -83,7 +141,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -103,6 +161,7 @@
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -110,8 +169,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -131,6 +193,10 @@
       "datasource": {
         "uid": "${LokiDataSource}"
       },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
         "h": 14,
         "w": 24,
@@ -139,12 +205,17 @@
       },
       "id": 3,
       "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
+        "showCommonLabels": false,
         "showLabels": true,
         "showTime": true,
-        "sortOrder": "Descending"
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
       },
+      "pluginVersion": "12.2.1",
       "targets": [
         {
           "datasource": {
@@ -159,8 +230,9 @@
       "type": "logs"
     }
   ],
-  "schemaVersion": 37,
-  "style": "dark",
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
   "tags": [
     "loki",
     "mealie",
@@ -170,20 +242,17 @@
     "list": [
       {
         "current": {
-          "selected": true,
           "text": "Loki",
-          "value": "Loki"
+          "value": "P8E80F9AEF21F6940"
         },
         "description": "Loki data source",
-        "hide": 0,
         "includeAll": false,
         "label": "Loki Data Source",
-        "multi": false,
         "name": "LokiDataSource",
+        "options": [],
         "query": "loki",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       },
       {
@@ -192,13 +261,16 @@
           "value": "mealie-logs"
         },
         "description": "A literal string to filter logs by (e.g., 'mealie-logs')",
-        "hide": 0,
         "label": "Mealie Log Content Filter",
         "name": "JobLabel",
-        "options": [],
+        "options": [
+          {
+            "selected": true,
+            "text": "mealie-logs",
+            "value": "mealie-logs"
+          }
+        ],
         "query": "mealie-logs",
-        "refresh": 0,
-        "skipUrlSync": false,
         "type": "custom"
       },
       {
@@ -207,14 +279,12 @@
           "value": "demo"
         },
         "description": "The namespace label for Mealie (e.g., demo)",
-        "hide": 0,
         "label": "Mealie Namespace",
         "name": "NamespaceLabel",
         "options": [],
         "query": "label_values({__name__=\"log\"}, namespace)",
         "refresh": 1,
         "regex": "/demo.*/",
-        "skipUrlSync": false,
         "type": "query"
       }
     ]
@@ -229,4 +299,3 @@
   "uid": "mealie-auth-monitor",
   "version": 1
 }
-
