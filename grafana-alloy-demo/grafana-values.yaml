@@ -6,6 +6,7 @@ persistence:
 # DO NOT DO THIS IN PRODUCTION USECASES
 adminUser: admin
 adminPassword: adminadminadmin
+
 # CONSIDER USING AN EXISTING SECRET
 # Use an existing secret for the admin user.
 # admin:
@@ -20,15 +21,42 @@ service:
 
 datasources:
   datasources.yaml:
-        apiVersion: 1
-        datasources:
-        - name: Loki
-          type: loki
-          access: proxy
-          orgId: 1
-          url: http://loki-gateway.demo.svc.cluster.local:80
-          basicAuth: false
-          isDefault: false
-          version: 1
-          editable: false
+    apiVersion: 1
+    datasources:
+    - name: Loki
+      type: loki
+      access: proxy
+      orgId: 1
+      url: http://loki-gateway.demo.svc.cluster.local:80
+      basicAuth: false
+      isDefault: false
+      version: 1
+      editable: false
+    - name: mimir
+      type: prometheus
+      uid: af2zaulzrzls0c
+      orgId: 1
+      access: proxy
+      url: http://mimir-nginx.demo.svc.cluster.local/prometheus
+      isDefault: false
+      editable: true
+      jsonData:
+        httpHeaderName1: X-Scope-OrgID
+      secureJsonData:
+          httpHeaderValue1: demo
 
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /var/lib/grafana/dashboards/default
+
+dashboardsConfigMaps:
+  default: "grafana-dashboards"

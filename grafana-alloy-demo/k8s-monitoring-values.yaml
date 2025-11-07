@@ -27,32 +27,39 @@ podLogs:
   enabled: true
   gatherMethod: kubernetesApi
   collector: alloy-logs
+  
+  # these become indexed 
   labelsToKeep: 
     - app
-    - pod
-    - app_kubernetes_io_name
     - container
-    - instance
     - job
-    - level
+    - level  #filter by log level eg ({app="mealie", level="error"} ) 
     - namespace
-    - service_name
-    - service_namespace
-    - deployment_environment
-    - deployment_environment_name
+  
   relabelConfigs:
-    #I have the feeling this isn't ONLY restricting to the mealie pod being sent to loki.. other ones also stream, but this was still neeeded
-    #to make sure mealie ones were scraped
-    # only scrape logs from a pod that starts with mealie
+      # Keep only pods with app=mealie label, anything after _pod_label_XXXX.. the XXXX is your label you defined for your pod in values for the pod
     - action: keep
-      source_labels: [__meta_kubernetes_pod_name]
-      regex: ^mealie.*
-    # Adds job=mealie-logs to every kept log line
-    - action: replace
-      target_label: job
-      replacement: mealie-logs
+      source_labels: [__meta_kubernetes_pod_label_app]
+      regex: mealie
+ 
+  #not really using this in demo, but showing how if action: replace doens't work which it didn't for Job for me,
+  #you can use extraDiscoveryRules 
+  #extraDiscoveryRules: |
+  #  // Override job label for mealie pods
+  #  rule {
+  #    source_labels = ["__meta_kubernetes_pod_label_app"]
+  #    regex = "mealie"
+  #    action = "replace"
+  #    target_label = "job"
+  #    replacement = "mealie-logs"
+  #  }
+
+  #by moving pod and instance to structuredMetadata, you're saying: 
+  #"I want these fields available with my logs, but I don't need to query/filter on them frequently, so don't index them."
   structuredMetadata:
     pod: pod
+    instance: instance
+  
   namespaces:
     - demo
 
