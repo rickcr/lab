@@ -1,0 +1,39 @@
+services:
+  mimir:
+    image: grafana/mimir:latest
+    container_name: mimir
+    command:
+      - -config.file=/etc/mimir/mimir.yaml
+      - -target=all
+    ports:
+      - "9009:9009"  # Mimir HTTP
+    volumes:
+      - ./mimir-config.yaml:/etc/mimir/mimir.yaml
+      - mimir-data:/data
+    networks:
+      - mimir-network
+      
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_USERS_DEFAULT_THEME=light
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    networks:
+      - mimir-network
+    depends_on:
+      - mimir
+      
+volumes:
+  mimir-data:
+  grafana-data:
+  
+networks:
+  mimir-network:
+    driver: bridge

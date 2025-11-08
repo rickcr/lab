@@ -1,33 +1,62 @@
-// Component 1: Define the Remote Write endpoint (Mimir)
-// This destination component remains the same.
-prometheus.remote_write "mimir_bridge" {
-  endpoint {
-    url = "http://localhost:9009/api/v1/push"
-  }
+// Alloy v1.11.3 Configuration for Textfile Collector to Mimir
+// ------------------------------------------------------------------------------------------------
+
+// Add logging configuration
+logging {
+    level  = "debug"
+    format = "logfmt"
 }
 
-// Component 2: The Textfile Collector
-// This component watches a directory for files ending in .prom
-// and collects any Prometheus metrics found inside them.
-prometheus.exporter.textfile "metrics_reader" {
-  // Define the path and file pattern to watch.
-  // Your "intermediate system" must write its metric strings into files in this directory.
-  file_paths = ["/tmp/metrics-collector/*.prom"]
-  
-  // How often to re-check the files for new metrics.
-  scrape_interval = "5s"
+// 1. Set up the Unix exporter with textfile collector
+prometheus.exporter.unix "textfile" {
+    // Enable only the textfile collector, disable other unix metrics
+    set_collectors = ["textfile"]
+    // Point to your directory containing .prom files
+    textfile {
+        directory = "prom-metrics-demo-server/temp"
+        // directory = "/home/rick_reumann/Projects/rick/lab/custom-metrics-to-textfile-to-mimir/prom-metrics-demo-server/temp"
+    }
 }
 
-// Component 3: The Scraper
-// This component "scrapes" the metrics from the textfile collector component.
-prometheus.scrape "scrape_textfiles" {
-  // The targets are the exporter component we just defined.
-  // This wires the scraper to the textfile reader.
-  targets = prometheus.exporter.textfile.metrics_reader.targets
+// 2. Scrape the textfile exporter
+prometheus.scrape "textfile_scraper" {
+    targets    = prometheus.exporter.unix.textfile.targets
+    forward_to = [prometheus.relabel.add_debug.receiver]
+    scrape_interval = "5s"
+    scrape_timeout  = "4s"
+    job_name = "textfile-local"
+}
 
-  scrape_interval = "5s"
-  scrape_timeout  = "4s"
+// 3. Add relabeling to log metrics before sending
+prometheus.relabel "add_debug" {
+    forward_to = [prometheus.remote_write.mimir.receiver]
 
-  // Forward the scraped metrics to Mimir.
-  forward_to = [prometheus.remote_write.mimir_bridge.receiver]
+    rule {
+        source_labels = ["__name__"]
+        target_label  = "__tmp_metric_name"
+    }
+}
+
+// 4. Remote Write to Mimir with queue config for visibility
+prometheus.remote_write "mimir" {
+    endpoint {
+        url = "http://localhost:9009/api/v1/push"
+        headers = {
+            "X-Scope-OrgID" = "demo",
+        }
+
+        queue_config {
+            capacity = 10000
+            max_shards = 1
+            min_shards = 1
+            max_samples_per_send = 500
+            batch_send_deadline = "5s"
+        }
+    }
+
+    wal {
+        truncate_frequency = "2h"
+        min_keepalive_time = "5m"
+        max_keepalive_time = "8h"
+    }
 }
