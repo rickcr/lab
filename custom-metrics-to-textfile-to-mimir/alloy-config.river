@@ -1,0 +1,33 @@
+// Component 1: Define the Remote Write endpoint (Mimir)
+// This destination component remains the same.
+prometheus.remote_write "mimir_bridge" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+  }
+}
+
+// Component 2: The Textfile Collector
+// This component watches a directory for files ending in .prom
+// and collects any Prometheus metrics found inside them.
+prometheus.exporter.textfile "metrics_reader" {
+  // Define the path and file pattern to watch.
+  // Your "intermediate system" must write its metric strings into files in this directory.
+  file_paths = ["/tmp/metrics-collector/*.prom"]
+  
+  // How often to re-check the files for new metrics.
+  scrape_interval = "5s"
+}
+
+// Component 3: The Scraper
+// This component "scrapes" the metrics from the textfile collector component.
+prometheus.scrape "scrape_textfiles" {
+  // The targets are the exporter component we just defined.
+  // This wires the scraper to the textfile reader.
+  targets = prometheus.exporter.textfile.metrics_reader.targets
+
+  scrape_interval = "5s"
+  scrape_timeout  = "4s"
+
+  // Forward the scraped metrics to Mimir.
+  forward_to = [prometheus.remote_write.mimir_bridge.receiver]
+}

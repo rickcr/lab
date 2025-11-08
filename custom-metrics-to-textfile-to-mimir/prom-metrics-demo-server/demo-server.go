@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/expfmt"
 )
 
 var (
@@ -73,34 +71,5 @@ func updateMetrics() {
 	for range ticker.C {
 		lastUpdateTimestamp.Set(float64(time.Now().Unix()))
 		log.Println("Metrics updated at", time.Now().Format("15:04:05"))
-		metricsString, err := getMetricsAsString()
-		if err != nil {
-			log.Println("Error gathering metrics to string:", err)
-		} else {
-			log.Println("Metric data for push to client:\n", metricsString)
-		}
 	}
-}
-
-func getMetricsAsString() (string, error) {
-	log.Println("Gathering metrics from default registry...")
-	// Gather all registered metrics
-	metricFamilies, err := prometheus.DefaultGatherer.Gather()
-	if err != nil {
-		return "", fmt.Errorf("could not gather metrics: %w", err)
-	}
-
-	// Create a strings.Builder to write the encoded metrics to
-	var sb strings.Builder
-
-	// Create a new text encoder and write the metrics to the string builder
-	encoder := expfmt.NewEncoder(&sb, expfmt.FmtText)
-	for _, mf := range metricFamilies {
-		if err := encoder.Encode(mf); err != nil {
-			return "", fmt.Errorf("could not encode metric family %s: %w", mf.GetName(), err)
-		}
-	}
-
-	// Return the built string
-	return sb.String(), nil
 }
