@@ -1,0 +1,30 @@
+// Component 1: Define the Remote Write endpoint (Mimir)
+// This is the destination where metrics will be sent.
+// We label it "mimir_bridge" for use in other components.
+prometheus.remote_write "mimir_bridge" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    // Alloy handles the necessary Prometheus Remote Write compression and headers automatically.
+  }
+}
+
+// Component 2: Define the Scrape job
+// This component scrapes your Prometheus endpoint and forwards the metrics.
+prometheus.scrape "local_metrics" {
+  // FIX: Setting scrape interval to 4s (matching what Alloy seems to be defaulting to)
+  scrape_interval = "4s"
+  
+  // FIX: Explicitly setting the scrape timeout to 3s (less than 4s interval)
+  scrape_timeout = "3s"
+  
+  // Define the target(s) to scrape.
+  targets = [
+    {
+      "__address__" = "localhost:8080",
+      "job"         = "local-metrics-bridge",
+    },
+  ]
+  
+  // Forward the scraped metrics to the remote_write component defined above.
+  forward_to = [prometheus.remote_write.mimir_bridge.receiver]
+}

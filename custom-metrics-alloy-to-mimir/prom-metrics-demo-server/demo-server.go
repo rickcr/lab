@@ -65,7 +65,7 @@ func showAppHandler(w http.ResponseWriter, r *http.Request) {
 
 // updateMetrics periodically updates the last update timestamp
 func updateMetrics() {
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
 
 	for range ticker.C {

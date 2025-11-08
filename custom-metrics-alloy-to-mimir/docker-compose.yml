@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mimir:
+    image: grafana/mimir:latest
+    container_name: mimir
+    command:
+      - -config.file=/etc/mimir/mimir.yaml
+      - -target=all
+    ports:
+      - "9009:9009"  # Mimir HTTP
+      - "8080:8080"  # Mimir gRPC (alternative)
+    volumes:
+      - ./mimir-config.yaml:/etc/mimir/mimir.yaml
+      - mimir-data:/data
+    networks:
+      - mimir-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_USERS_DEFAULT_THEME=light
+        # Configure datasource via environment
+      - GF_DATASOURCES_DEFAULT_NAME=Mimir
+      - GF_DATASOURCES_DEFAULT_TYPE=prometheus
+      - GF_DATASOURCES_DEFAULT_ACCESS=proxy
+      - GF_DATASOURCES_DEFAULT_URL=http://mimir:9009/prometheus
+      - GF_DATASOURCES_DEFAULT_IS_DEFAULT=true
+      #
+      # --- Mimir Authentication Headers FIX ---
+      # This configures the custom HTTP header name (X-Scope-OrgID) in jsonData
+      - GF_DATASOURCES_DEFAULT_JSON_DATA_HTTPHEADERNAME1=X-Scope-OrgID
+      # This configures the secret header value (demo) in secureJsonData
+      - GF_DATASOURCES_DEFAULT_SECURE_JSON_DATA_HTTPHEADERVALUE1=demo
+      # ----------------------------------------
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - mimir-network
+    depends_on:
+      - mimir
+
+volumes:
+  mimir-data:
+  grafana-data:
+
+networks:
+  mimir-network:
+    driver: bridge
