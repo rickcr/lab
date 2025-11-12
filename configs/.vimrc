@@ -8,7 +8,7 @@ set signcolumn=yes
 set relativenumber
 set number
 set termguicolors
-set undofile
+"set undofile
 "set spell
 set title
 set ignorecase
@@ -26,3 +26,5 @@ set splitright
 set clipboard=unnamedplus
 set confirm
 set exrc
+colorscheme desert
+
