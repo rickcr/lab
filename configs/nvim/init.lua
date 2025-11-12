@@ -1,4 +1,4 @@
---[[
+ --[[
 
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
@@ -190,6 +190,9 @@ vim.keymap.set("n", "<C-l>", "<C-w><C-l>", { desc = "Move focus to the right win
 vim.keymap.set("n", "<C-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
 vim.keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
+local vimrc_path = vim.fn.stdpath("config") .. "/vimrc.vim"
+vim.cmd.source(vimrc_path)
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -227,9 +230,80 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
-require("lazy").setup({ "fatih/vim-go"}, {
-	-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-	"tpope/vim-sleuth", -- Detect tabstop and shiftwidth automatically
+require("lazy").setup({
+	--{
+	--	"projekt0n/github-nvim-theme",
+	--	lazy = false, -- Load the colorscheme immediately
+	--	priority = 1000, -- Ensure it loads before other plugins
+	--	config = function()
+	--		vim.cmd.colorscheme("github_dark_default")
+	--		-- Optional: Configure the theme further if needed
+	--		-- require("tokyonight").setup({
+	--		--     style = "moon", -- "storm", "moon", "night", "day"
+	--		--     transparent = true,
+	--		--     terminal_colors = true,
+	--		--     styles = {
+	--		--         comments = { italic = true },
+	--		--         keywords = { italic = true },
+	--		--     },
+	--		-- })
+	--	end,
+	--},
+	{
+		"nickkadutskyi/jb.nvim",
+		lazy = false,
+		priority = 1000,
+		opts = {},
+		config = function()
+			-- require("jb").setup({transparent = true})
+			vim.cmd("colorscheme jb")
+		end,
+	},
+	--{
+	-- 	"morhetz/gruvbox",
+	-- 	config = function()
+	-- 		vim.cmd.colorscheme("gruvbox")
+	-- 	end,
+	-- },
+	{ "fatih/vim-go" },
+	{ "tpope/vim-sleuth" },
+	{
+		"happyeric77/joplin.nvim",
+		config = function()
+			require("joplin").setup({
+				-- API Configuration (flat structure, NOT nested under 'api')
+				token_env = "JOPLIN_TOKEN", -- Environment variable for token
+				token = nil, -- Or directly specify token (overrides env var)
+				port = 41184,
+				host = "localhost",
+
+				-- Tree view settings
+				tree = {
+					height = 12,
+					position = "botright",
+					focus_after_open = false,
+					auto_sync = true,
+				},
+
+				-- Keymap settings
+				keymaps = {
+					enter = "replace", -- Enter behavior: replace/vsplit
+					o = "vsplit", -- o behavior: vsplit/replace
+					search = "<leader>js",
+					search_notebook = "<leader>jsnb",
+					toggle_tree = "<leader>jt",
+				},
+
+				-- Startup validation settings
+				startup = {
+					validate_on_load = true, -- Validate requirements on startup
+					show_warnings = true, -- Show warning messages
+					async_validation = true, -- Async validation to avoid blocking
+					validation_delay = 100, -- Delay before validation starts
+				},
+			})
+		end,
+	},
 
 	-- NOTE: Plugins can also be added by using a table,
 	-- with the first argument being the link and the following
@@ -974,8 +1048,6 @@ require("lazy").setup({ "fatih/vim-go"}, {
 	},
 })
 
-local vimrc_path = vim.fn.stdpath("config") .. "/vimrc.vim"
-vim.cmd.source(vimrc_path)
-
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
